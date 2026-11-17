@@ -1,0 +1,412 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Default-Deny Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Hardened Primitive Helpers
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isVerifiedUser() && request.auth.uid == userId;
+    }
+
+    function isTokenAdmin() {
+      return isVerifiedUser() && request.auth.token.email == 'info.pncom@gmail.com';
+    }
+
+    function isAdmin() {
+      return isTokenAdmin();
+    }
+
+    // 3. Entity Validation Blueprints
+    function isValidUserPublicProfile(data, userId) {
+      return data.keys().hasAll(['uid', 'displayName', 'role', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'displayName', 'photoURL', 'role', 'createdAt', 'updatedAt'])
+        && isValidId(data.uid)
+        && data.uid == userId
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500))
+        && data.role is string && data.role in ['customer', 'admin']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidUserPrivateInfo(data, userId) {
+      return data.keys().hasAll(['uid', 'email', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'email', 'phone', 'neighborhood', 'updatedAt'])
+        && isValidId(data.uid)
+        && data.uid == userId
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 200
+        && (!('phone' in data) || (data.phone is string && data.phone.size() <= 30))
+        && (!('neighborhood' in data) || (data.neighborhood is string && data.neighborhood.size() <= 200))
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAdminGrant(data, userId) {
+      return data.keys().hasAll(['uid', 'email', 'grantedAt'])
+        && data.keys().hasOnly(['uid', 'email', 'grantedAt'])
+        && isValidId(data.uid)
+        && data.uid == userId
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 200
+        && data.grantedAt is timestamp;
+    }
+
+    function isValidSpecimen(data, specimenId) {
+      return data.keys().hasAll([
+          'id', 'commonName', 'latinName', 'family', 'category', 'price', 'stock',
+          'light', 'water', 'heightRange', 'potDiameter', 'origin', 'humidity',
+          'soilMix', 'petSafe', 'isRareSeasonal', 'provenanceNote', 'careGuide',
+          'imageUrl', 'updatedAt', 'updatedBy'
+        ])
+        && data.keys().hasOnly([
+          'id', 'commonName', 'latinName', 'family', 'category', 'price', 'stock',
+          'light', 'water', 'heightRange', 'potDiameter', 'origin', 'humidity',
+          'soilMix', 'petSafe', 'isRareSeasonal', 'provenanceNote', 'careGuide',
+          'imageUrl', 'updatedAt', 'updatedBy'
+        ])
+        && isValidId(data.id)
+        && data.id == specimenId
+        && data.commonName is string && data.commonName.size() >= 1 && data.commonName.size() <= 140
+        && data.latinName is string && data.latinName.size() >= 1 && data.latinName.size() <= 160
+        && data.family is string && data.family.size() >= 1 && data.family.size() <= 100
+        && data.category is string && data.category.size() >= 1 && data.category.size() <= 100
+        && (data.price is int || data.price is float) && data.price > 0 && data.price <= 10000000
+        && data.stock is int && data.stock >= 0 && data.stock <= 100000
+        && data.light is string && data.light.size() >= 1 && data.light.size() <= 100
+        && data.water is string && data.water.size() >= 1 && data.water.size() <= 100
+        && data.heightRange is string && data.heightRange.size() <= 80
+        && data.potDiameter is string && data.potDiameter.size() <= 40
+        && data.origin is string && data.origin.size() <= 160
+        && data.humidity is string && data.humidity.size() <= 60
+        && data.soilMix is string && data.soilMix.size() <= 200
+        && data.petSafe is bool
+        && data.isRareSeasonal is bool
+        && data.provenanceNote is string && data.provenanceNote.size() <= 400
+        && data.careGuide is string && data.careGuide.size() <= 1200
+        && data.imageUrl is string && data.imageUrl.size() >= 1 && data.imageUrl.size() <= 500000
+        && data.updatedAt is timestamp
+        && isValidId(data.updatedBy);
+    }
+
+    function isValidBannerConfig(data) {
+      return data.keys().hasAll([
+          'imageUrl', 'eyebrow', 'captionTitle', 'captionLatin', 'locationTag', 'updatedAt', 'updatedBy'
+        ])
+        && data.keys().hasOnly([
+          'imageUrl', 'eyebrow', 'captionTitle', 'captionLatin', 'locationTag', 'updatedAt', 'updatedBy'
+        ])
+        && data.imageUrl is string && data.imageUrl.size() >= 1 && data.imageUrl.size() <= 500000
+        && data.eyebrow is string && data.eyebrow.size() >= 1 && data.eyebrow.size() <= 160
+        && data.captionTitle is string && data.captionTitle.size() >= 1 && data.captionTitle.size() <= 160
+        && data.captionLatin is string && data.captionLatin.size() <= 160
+        && data.locationTag is string && data.locationTag.size() <= 100
+        && data.updatedAt is timestamp
+        && isValidId(data.updatedBy);
+    }
+
+    function isValidTaxonomyConfig(data) {
+      return data.keys().hasAll([
+          'categories', 'lightOptions', 'waterOptions', 'updatedAt', 'updatedBy'
+        ])
+        && data.keys().hasOnly([
+          'categories', 'lightOptions', 'waterOptions', 'updatedAt', 'updatedBy'
+        ])
+        && data.categories is list && data.categories.size() >= 1 && data.categories.size() <= 30
+        && data.categories[0] is string && data.categories[0].size() >= 1 && data.categories[0].size() <= 100
+        && data.lightOptions is list && data.lightOptions.size() >= 1 && data.lightOptions.size() <= 20
+        && data.lightOptions[0] is string && data.lightOptions[0].size() >= 1 && data.lightOptions[0].size() <= 100
+        && data.waterOptions is list && data.waterOptions.size() >= 1 && data.waterOptions.size() <= 20
+        && data.waterOptions[0] is string && data.waterOptions[0].size() >= 1 && data.waterOptions[0].size() <= 100
+        && data.updatedAt is timestamp
+        && isValidId(data.updatedBy);
+    }
+
+    function isValidOrderInquiry(data, enquiryId) {
+      return data.keys().hasAll([
+          'id', 'userId', 'specimenId', 'specimenName', 'latinName', 'planterName',
+          'quantity', 'totalPrice', 'customerName', 'neighborhood', 'deliveryMethod',
+          'message', 'status', 'createdAtLabel', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'userId', 'specimenId', 'specimenName', 'latinName', 'planterName',
+          'quantity', 'totalPrice', 'customerName', 'neighborhood', 'deliveryMethod',
+          'message', 'status', 'createdAtLabel', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.id == enquiryId
+        && isValidId(data.userId)
+        && data.specimenId is string && data.specimenId.size() <= 128
+        && data.specimenName is string && data.specimenName.size() >= 1 && data.specimenName.size() <= 160
+        && data.latinName is string && data.latinName.size() <= 160
+        && data.planterName is string && data.planterName.size() >= 1 && data.planterName.size() <= 120
+        && data.quantity is int && data.quantity >= 1 && data.quantity <= 1000
+        && (data.totalPrice is int || data.totalPrice is float) && data.totalPrice >= 0 && data.totalPrice <= 100000000
+        && data.customerName is string && data.customerName.size() >= 1 && data.customerName.size() <= 120
+        && data.neighborhood is string && data.neighborhood.size() <= 200
+        && data.deliveryMethod is string && data.deliveryMethod in ['White-Glove Courier', 'Conservatory Pickup']
+        && data.message is string && data.message.size() <= 1000
+        && data.status is string && data.status in ['pending', 'confirmed', 'fulfilled']
+        && data.createdAtLabel is string && data.createdAtLabel.size() <= 60
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidConciergeThread(data, userId) {
+      return data.keys().hasAll([
+          'userId', 'customerName', 'lastMessagePreview', 'status', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'userId', 'customerName', 'lastMessagePreview', 'status', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.userId)
+        && data.userId == userId
+        && data.customerName is string && data.customerName.size() >= 1 && data.customerName.size() <= 120
+        && data.lastMessagePreview is string && data.lastMessagePreview.size() >= 1 && data.lastMessagePreview.size() <= 300
+        && data.status is string && data.status in ['open', 'resolved']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidConciergeMessage(data, userId, messageId) {
+      return data.keys().hasAll([
+          'id', 'threadUserId', 'senderUid', 'senderName', 'senderRole', 'text', 'specimenRef', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'threadUserId', 'senderUid', 'senderName', 'senderRole', 'text', 'specimenRef', 'createdAt'
+        ])
+        && isValidId(data.id)
+        && data.id == messageId
+        && isValidId(data.threadUserId)
+        && data.threadUserId == userId
+        && isValidId(data.senderUid)
+        && data.senderName is string && data.senderName.size() >= 1 && data.senderName.size() <= 120
+        && data.senderRole is string && data.senderRole in ['customer', 'admin']
+        && data.text is string && data.text.size() >= 1 && data.text.size() <= 1500
+        && data.specimenRef is string && data.specimenRef.size() <= 140
+        && data.createdAt is timestamp;
+    }
+
+    // 4. Collection Rules (Auth -> Static Validation -> Relational DB Checks)
+    match /users/{userId} {
+      allow get: if isValidId(userId) && isVerifiedUser() && (isOwner(userId) || isAdmin());
+      allow list: if isTokenAdmin();
+      allow create: if isValidId(userId)
+        && isVerifiedUser()
+        && isValidUserPublicProfile(incoming(), userId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && ((isOwner(userId) && incoming().role == 'customer') || isAdmin());
+      allow update: if isValidId(userId)
+        && isVerifiedUser()
+        && isValidUserPublicProfile(incoming(), userId)
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          (
+            isOwner(userId)
+            && incoming().role == existing().role
+            && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'updatedAt'])
+          ) || isAdmin()
+        );
+      allow delete: if isValidId(userId) && isAdmin();
+
+      match /private/{infoId} {
+        allow get: if isValidId(userId) && infoId == 'info' && isVerifiedUser() && (isOwner(userId) || isAdmin());
+        allow list: if false;
+        allow create: if isValidId(userId) && infoId == 'info'
+          && isVerifiedUser()
+          && isValidUserPrivateInfo(incoming(), userId)
+          && incoming().updatedAt == request.time
+          && (isOwner(userId) || isAdmin());
+        allow update: if isValidId(userId) && infoId == 'info'
+          && isVerifiedUser()
+          && isValidUserPrivateInfo(incoming(), userId)
+          && incoming().uid == existing().uid
+          && incoming().updatedAt == request.time
+          && (
+            (
+              isOwner(userId)
+              && incoming().diff(existing()).affectedKeys().hasOnly(['email', 'phone', 'neighborhood', 'updatedAt'])
+            ) || isAdmin()
+          );
+        allow delete: if isValidId(userId) && infoId == 'info' && isAdmin();
+      }
+    }
+
+    match /admins/{userId} {
+      allow get: if isValidId(userId) && isVerifiedUser() && (isOwner(userId) || isAdmin());
+      allow list: if isTokenAdmin();
+      allow create, update: if isValidId(userId)
+        && isVerifiedUser()
+        && isValidAdminGrant(incoming(), userId)
+        && incoming().grantedAt == request.time
+        && isAdmin();
+      allow delete: if isValidId(userId) && isAdmin();
+    }
+
+    match /specimens/{specimenId} {
+      allow get: if isValidId(specimenId);
+      allow list: if true;
+      allow create: if isValidId(specimenId)
+        && isVerifiedUser()
+        && isValidSpecimen(incoming(), specimenId)
+        && incoming().updatedAt == request.time
+        && incoming().updatedBy == request.auth.uid
+        && isAdmin();
+      allow update: if isValidId(specimenId)
+        && isVerifiedUser()
+        && isValidSpecimen(incoming(), specimenId)
+        && incoming().id == existing().id
+        && incoming().updatedAt == request.time
+        && incoming().updatedBy == request.auth.uid
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'commonName', 'latinName', 'family', 'category', 'price', 'stock',
+          'light', 'water', 'heightRange', 'potDiameter', 'origin', 'humidity',
+          'soilMix', 'petSafe', 'isRareSeasonal', 'provenanceNote', 'careGuide',
+          'imageUrl', 'updatedAt', 'updatedBy'
+        ])
+        && isAdmin();
+      allow delete: if isValidId(specimenId) && isAdmin();
+    }
+
+    match /banner_config/{configId} {
+      allow get: if isValidId(configId);
+      allow list: if false;
+      allow create: if isValidId(configId)
+        && isVerifiedUser()
+        && isValidBannerConfig(incoming())
+        && incoming().updatedAt == request.time
+        && incoming().updatedBy == request.auth.uid
+        && isAdmin();
+      allow update: if isValidId(configId)
+        && isVerifiedUser()
+        && isValidBannerConfig(incoming())
+        && incoming().updatedAt == request.time
+        && incoming().updatedBy == request.auth.uid
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'imageUrl', 'eyebrow', 'captionTitle', 'captionLatin', 'locationTag', 'updatedAt', 'updatedBy'
+        ])
+        && isAdmin();
+      allow delete: if isValidId(configId) && isAdmin();
+    }
+
+    match /taxonomy_config/{configId} {
+      allow get: if isValidId(configId);
+      allow list: if false;
+      allow create: if isValidId(configId)
+        && isVerifiedUser()
+        && isValidTaxonomyConfig(incoming())
+        && incoming().updatedAt == request.time
+        && incoming().updatedBy == request.auth.uid
+        && isAdmin();
+      allow update: if isValidId(configId)
+        && isVerifiedUser()
+        && isValidTaxonomyConfig(incoming())
+        && incoming().updatedAt == request.time
+        && incoming().updatedBy == request.auth.uid
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'categories', 'lightOptions', 'waterOptions', 'updatedAt', 'updatedBy'
+        ])
+        && isAdmin();
+      allow delete: if isValidId(configId) && isAdmin();
+    }
+
+    match /enquiries/{enquiryId} {
+      allow get: if isValidId(enquiryId) && isVerifiedUser() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isVerifiedUser() && (resource.data.userId == request.auth.uid || isTokenAdmin());
+      allow create: if isValidId(enquiryId)
+        && isVerifiedUser()
+        && isValidOrderInquiry(incoming(), enquiryId)
+        && incoming().userId == request.auth.uid
+        && incoming().status == 'pending'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(enquiryId)
+        && isVerifiedUser()
+        && isValidOrderInquiry(incoming(), enquiryId)
+        && incoming().id == existing().id
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          (
+            existing().userId == request.auth.uid
+            && existing().status != 'fulfilled'
+            && incoming().status == existing().status
+            && incoming().diff(existing()).affectedKeys().hasOnly(['message', 'neighborhood', 'updatedAt'])
+          ) || isAdmin()
+        );
+      allow delete: if isValidId(enquiryId) && isAdmin();
+    }
+
+    match /concierge_threads/{userId} {
+      allow get: if isValidId(userId) && isVerifiedUser() && (isOwner(userId) || isAdmin());
+      allow list: if isTokenAdmin();
+      allow create: if isValidId(userId)
+        && isVerifiedUser()
+        && isValidConciergeThread(incoming(), userId)
+        && incoming().status == 'open'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && (isOwner(userId) || isAdmin());
+      allow update: if isValidId(userId)
+        && isVerifiedUser()
+        && isValidConciergeThread(incoming(), userId)
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          (
+            isOwner(userId)
+            && existing().status != 'resolved'
+            && incoming().status == 'open'
+            && incoming().diff(existing()).affectedKeys().hasOnly(['customerName', 'lastMessagePreview', 'status', 'updatedAt'])
+          ) || isAdmin()
+        );
+      allow delete: if isValidId(userId) && isAdmin();
+
+      match /messages/{messageId} {
+        allow get: if isValidId(userId) && isValidId(messageId) && isVerifiedUser() && (isOwner(userId) || isAdmin());
+        allow list: if isValidId(userId) && isVerifiedUser() && (isOwner(userId) || isTokenAdmin());
+        allow create: if isValidId(userId) && isValidId(messageId)
+          && isVerifiedUser()
+          && isValidConciergeMessage(incoming(), userId, messageId)
+          && incoming().senderUid == request.auth.uid
+          && incoming().createdAt == request.time
+          && (
+            (isOwner(userId) && incoming().senderRole == 'customer') ||
+            (isAdmin() && incoming().senderRole == 'admin')
+          )
+          && (
+            exists(/databases/$(database)/documents/concierge_threads/$(userId)) ||
+            existsAfter(/databases/$(database)/documents/concierge_threads/$(userId))
+          );
+        allow update: if false;
+        allow delete: if isValidId(userId) && isValidId(messageId) && isAdmin();
+      }
+    }
+  }
+}

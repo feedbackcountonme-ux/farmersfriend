@@ -1,0 +1,6 @@
+{
+  "name": "Verdant Atelier",
+  "description": "Botanical nursery and artisanal plant atelier featuring curated architectural specimens, white-glove care, direct WhatsApp ordering, and specimen inventory management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

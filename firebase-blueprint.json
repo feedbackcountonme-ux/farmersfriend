@@ -1,0 +1,531 @@
+{
+  "entities": {
+    "UserPublicProfile": {
+      "title": "UserPublicProfile",
+      "description": "Non-sensitive storefront account profile for a signed-in Farmers Friend member.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "photoURL": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "role": {
+          "type": "string",
+          "enum": ["customer", "admin"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "displayName", "role", "createdAt", "updatedAt"]
+    },
+    "UserPrivateInfo": {
+      "title": "UserPrivateInfo",
+      "description": "Isolated personally identifiable information for a signed-in user.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 30
+        },
+        "neighborhood": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "updatedAt"]
+    },
+    "AdminGrant": {
+      "title": "AdminGrant",
+      "description": "Role-based access grant for studio administrators.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "grantedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "grantedAt"]
+    },
+    "Specimen": {
+      "title": "Specimen",
+      "description": "Curated botanical plant specimen in the Farmers Friend showroom catalogue.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "commonName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "latinName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "family": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "price": {
+          "type": "number"
+        },
+        "stock": {
+          "type": "integer"
+        },
+        "light": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "water": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "heightRange": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "potDiameter": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "origin": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "humidity": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "soilMix": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "petSafe": {
+          "type": "boolean"
+        },
+        "isRareSeasonal": {
+          "type": "boolean"
+        },
+        "provenanceNote": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "careGuide": {
+          "type": "string",
+          "maxLength": 1200
+        },
+        "imageUrl": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500000
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        }
+      },
+      "required": [
+        "id",
+        "commonName",
+        "latinName",
+        "family",
+        "category",
+        "price",
+        "stock",
+        "light",
+        "water",
+        "heightRange",
+        "potDiameter",
+        "origin",
+        "humidity",
+        "soilMix",
+        "petSafe",
+        "isRareSeasonal",
+        "provenanceNote",
+        "careGuide",
+        "imageUrl",
+        "updatedAt",
+        "updatedBy"
+      ]
+    },
+    "BannerConfig": {
+      "title": "BannerConfig",
+      "description": "Hero banner photography and caption settings managed from Admin Panel.",
+      "type": "object",
+      "properties": {
+        "imageUrl": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500000
+        },
+        "eyebrow": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "captionTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "captionLatin": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "locationTag": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        }
+      },
+      "required": [
+        "imageUrl",
+        "eyebrow",
+        "captionTitle",
+        "captionLatin",
+        "locationTag",
+        "updatedAt",
+        "updatedBy"
+      ]
+    },
+    "TaxonomyConfig": {
+      "title": "TaxonomyConfig",
+      "description": "Customisable Botanical Category, Light Requirement, and Watering Cadence lists.",
+      "type": "object",
+      "properties": {
+        "categories": {
+          "type": "array",
+          "description": "Bounded list of botanical categories (max 30 entries)."
+        },
+        "lightOptions": {
+          "type": "array",
+          "description": "Bounded list of light requirements (max 20 entries)."
+        },
+        "waterOptions": {
+          "type": "array",
+          "description": "Bounded list of watering cadences (max 20 entries)."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        }
+      },
+      "required": [
+        "categories",
+        "lightOptions",
+        "waterOptions",
+        "updatedAt",
+        "updatedBy"
+      ]
+    },
+    "OrderInquiry": {
+      "title": "OrderInquiry",
+      "description": "Customer specimen reservation or conservatory consultation enquiry.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "specimenId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "specimenName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "latinName": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "planterName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "quantity": {
+          "type": "integer"
+        },
+        "totalPrice": {
+          "type": "number"
+        },
+        "customerName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "neighborhood": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "deliveryMethod": {
+          "type": "string",
+          "enum": ["White-Glove Courier", "Conservatory Pickup"]
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "confirmed", "fulfilled"]
+        },
+        "createdAtLabel": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "specimenId",
+        "specimenName",
+        "latinName",
+        "planterName",
+        "quantity",
+        "totalPrice",
+        "customerName",
+        "neighborhood",
+        "deliveryMethod",
+        "message",
+        "status",
+        "createdAtLabel",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ConciergeThread": {
+      "title": "ConciergeThread",
+      "description": "Parent conversation thread between a signed-in customer and Farmers Friend showroom.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "customerName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "lastMessagePreview": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "status": {
+          "type": "string",
+          "enum": ["open", "resolved"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "userId",
+        "customerName",
+        "lastMessagePreview",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ConciergeMessage": {
+      "title": "ConciergeMessage",
+      "description": "Individual chat message saved inside a customer's concierge thread.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "threadUserId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "senderUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "senderName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "senderRole": {
+          "type": "string",
+          "enum": ["customer", "admin"]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1500
+        },
+        "specimenRef": {
+          "type": "string",
+          "maxLength": 140
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "threadUserId",
+        "senderUid",
+        "senderName",
+        "senderRole",
+        "text",
+        "specimenRef",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserPublicProfile" },
+      "description": "Non-sensitive user profile accessible only to the profile owner or admin."
+    },
+    "/users/{userId}/private/{infoId}": {
+      "schema": { "$ref": "#/entities/UserPrivateInfo" },
+      "description": "Private PII (email, phone, locality) strictly isolated per owner or admin."
+    },
+    "/admins/{userId}": {
+      "schema": { "$ref": "#/entities/AdminGrant" },
+      "description": "Admin role grant records checked via exists()."
+    },
+    "/specimens/{specimenId}": {
+      "schema": { "$ref": "#/entities/Specimen" },
+      "description": "Botanical storefront specimens; publicly readable catalogue, admin-only writes."
+    },
+    "/banner_config/{configId}": {
+      "schema": { "$ref": "#/entities/BannerConfig" },
+      "description": "Storefront hero banner configuration; publicly readable, admin-only writes."
+    },
+    "/taxonomy_config/{configId}": {
+      "schema": { "$ref": "#/entities/TaxonomyConfig" },
+      "description": "Dynamic categories, light profiles, and watering cadences; publicly readable, admin-only writes."
+    },
+    "/enquiries/{enquiryId}": {
+      "schema": { "$ref": "#/entities/OrderInquiry" },
+      "description": "Customer specimen reservations and enquiries owned by userId, readable by owner or admin."
+    },
+    "/concierge_threads/{userId}": {
+      "schema": { "$ref": "#/entities/ConciergeThread" },
+      "description": "Customer-to-showroom live chat thread header document."
+    },
+    "/concierge_threads/{userId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/ConciergeMessage" },
+      "description": "Immutable live chat messages within a customer concierge thread."
+    }
+  }
+}
